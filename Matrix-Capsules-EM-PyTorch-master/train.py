@@ -966,7 +966,7 @@ def accuracy(model, dataset_loader):
     return total_correct / len(dataset_loader.dataset)
 
 if __name__ == '__main__':
-    
+
     makedirs(args.save)
     logger = get_logger(logpath=os.path.join(args.save, 'logs'), filepath=os.path.abspath(__file__))
     logger.info(args)
@@ -1002,7 +1002,7 @@ if __name__ == '__main__':
     criterion = SpreadLoss(num_class=num_class, m_min=0.2, m_max=0.9)
     #Use SGD Optimizer, unsure if Adams will work for ODE based Nets.
     #TODO : Test with Adams and other optimizers.
-    optimizer = optim.SGD(model.paramters(), lr=args.lr, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     #Set the LR scheduler so it decays either on Plateau or periodically
     #TODO : Test with both variations. Then test with a completely randomized LR.
     #Idea is that with randomization, the function will be able to fit faster but not to overfit
