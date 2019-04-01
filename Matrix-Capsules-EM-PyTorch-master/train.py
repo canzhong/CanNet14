@@ -586,7 +586,7 @@ class CapsODEBlock(nn.Module):
     def forward(self, x):
 
         self.integration_time = self.integration_time.type_as(x)
-        out = odeint(self.odefunc, x, integration_time, rtol=0.001, atol=0.001)
+        out = odeint(self.odefunc, x, self.integration_time, rtol=0.001, atol=0.001)
 
         return out[1]
 
