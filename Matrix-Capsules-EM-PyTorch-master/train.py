@@ -551,7 +551,7 @@ class ConvCaps2(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, B=32, C=32, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
-        self._layer = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
         tt = torch.ones_like(x[:, :1, :, :]) * t
