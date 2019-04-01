@@ -978,12 +978,12 @@ if __name__ == '__main__':
     batches_per_epoch = len(train_loader)
     #Independent Layers of the test networks
     featuremaps = [
-        nn.Conv2d(1, 32, 3, 1),
-        norm(32),
-        PrimaryCaps(32, 32, 1, 4, 1),
+        nn.Conv2d(1, 12, 3, 1),
+        norm(12),
+        PrimaryCaps(12, 12, 1, 4, 1),
     ]
-    featureencapsulation = [CapsODEBlock(CapsODE(32))]
-    classsegregation = [ConvCaps2(32, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
+    featureencapsulation = [CapsODEBlock(CapsODE(12))]
+    classsegregation = [ConvCaps2(12, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
 
     #Sequential Model of Independent Layers for test network
     model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
