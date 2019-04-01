@@ -979,7 +979,8 @@ if __name__ == '__main__':
     #Independent Layers of the test networks
     featuremaps = [
         nn.Conv2d(1, 12, 3, 1),
-        norm(12),
+        nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
+        nn.ReLU(inplace=False),
         PrimaryCaps(12, 12, 1, 4, 1),
     ]
     featureencapsulation = [CapsODEBlock(CapsODE(12))]
