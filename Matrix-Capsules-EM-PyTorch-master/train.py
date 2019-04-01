@@ -333,7 +333,7 @@ class ConvCaps2(nn.Module):
 
     def __init__(self, B=32, C=32, K=3, P=4, stride=2, iters=3,
                  coor_add=False, w_shared=False):
-        super(ConvCaps, self).__init__()
+        super(ConvCaps2, self).__init__()
         # TODO: lambda scheduler
         # Note that .contiguous() for 3+ dimensional tensors is very slow
         self.B = B
