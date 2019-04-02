@@ -1,0 +1,16 @@
+torch.Size([13, 1, 28, 28]) capdsode11
+torch.Size([]) capsode9
+torch.Size([13, 1, 28, 28]) capsode10
+torch.Size([13, 12, 14, 14]) capsode91
+torch.Size([13, 12, 14, 14]) capsode92
+torch.Size([13, 12, 14, 14]) capsode93
+torch.Size([13, 12, 14, 14]) 1
+torch.Size([13, 192, 14, 14]) 2
+torch.Size([13, 12, 14, 14]) 3
+torch.Size([13, 204, 14, 14]) 4
+torch.Size([13, 14, 14, 204]) 5
+torch.Size([13, 14, 14, 204]) capsode94
+torch.Size([]) concatconv7
+torch.Size([13, 14, 14, 204]) concatconv8
+torch.Size([13, 1, 14, 204]) concatconv81
+torch.Size([13, 15, 14, 204]) concatconv82
