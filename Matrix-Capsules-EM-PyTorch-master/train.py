@@ -108,7 +108,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=12, C=12, K=3, P=4 stride=1, iters=1,
+    def __init__(self, B=12, C=12, K=3, P=4, stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
