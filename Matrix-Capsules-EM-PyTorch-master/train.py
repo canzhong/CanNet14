@@ -117,7 +117,7 @@ class ConvCaps(nn.Module):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
         # Note that .contiguous() for 3+ dimensional tensors is very slow
-        self.B = B + 1
+        self.B = B
         self.C = C
         self.K = K
         self.P = P
@@ -558,20 +558,35 @@ class ConvCaps2(nn.Module):
 
         return out
 
+class ConcatPrimaryCaps(nn.Module):
+    def __init__(self, A=dim, B=dim, K=1, P=4, stride=1):
+        super(ConcatPrimaryCaps, self).__init__()
+        self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=K, P=4, stride=1)
+
+    def forward(self, t, x):
+        print(t.shape, "ccpc1")
+        print(x.shape, "ccpc2")
+        tt = torch.ones_like(x[:, :1, :, :]) * t
+        print(tt.shape, "ccpc3")
+        ttx = torch.cat([tt, x], 1)
+        print(ttx.shape, "ccpc4")
+        out = self._layers1(ttx)
+        print(out.shape, "ccpc5")
+        return out
 
 class ConcatConvCaps(nn.Module):
-    def __init__(self, B=32, C=32, K=3, stride=2, iters=1, coor_add=False, w_shared=False):
+    def __init__(self, B=dim, C=dim, K=3, stride=2, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
-        self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
         print(x.shape, "concatconv8")
-        tt = torch.ones_like(x[:, :1, :, :]) * t
+        tt = torch.ones_like(x[:, :, :, :17]) * t
         print(tt.shape, "concatconv81")
-        ttx = torch.cat([tt, x], 1)
+        ttx = torch.cat([tt, x], 3)
         print(ttx.shape, "concatconv82")
-        out = self._layers(ttx)
+        out = self._layers2(ttx)
         print(out.shape, "concatconv83")
         return out
 
@@ -581,10 +596,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=dim, kernel_size=5, stride=2, padding=2)
-        self.bn1 = nn.BatchNorm2d(num_features=dim, eps=0.001, momentum=0.1, affine=True)
-        self.relu1 = nn.ReLU(inplace=False)
-        self.primary_caps = PrimaryCaps(dim, dim, 1, P=4, stride=1)
+        self.primary_caps = ConcatPrimaryCaps(dim, dim, 1, P=4, stride=1)
         self.convcaps = ConcatConvCaps(B=dim, C=dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
@@ -593,13 +605,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         print(t.shape, "capsode9")
         print(x.shape, "capsode10")
         self.nfe += 1
-        out = self.conv1(x)
-        print(out.shape, "capsode91")
-        out = self.bn1(out)
-        print(out.shape, "capsode92")
-        out = self.relu1(out)
         print(out.shape, "capsode93")
-        out = self.primary_caps(out)
+        out = self.primary_caps(t, out)
         print(out.shape, "capsode94")
         out = self.convcaps(t, out)
         print(out.shape, "capsode95")
@@ -844,13 +851,13 @@ if __name__ == '__main__':
         nn.Conv2d(in_channels=1, out_channels=12, kernel_size=5, stride=2, padding=2),
         nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
         nn.ReLU(inplace=False),
-        PrimaryCaps(12, 12, 1, 4, 1),
+        #PrimaryCaps(12, 12, 1, 4, 1),
     ]
     featureencapsulation = [CapsODEBlock(CapsODE(12))]
     classsegregation = [ConvCaps2(12, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
 
     #Sequential Model of Independent Layers for test network
-    model = nn.Sequential(*featureencapsulation, *classsegregation).to(device)
+    model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
 
     #Create a logger associated with our model
     logger.info(model)
