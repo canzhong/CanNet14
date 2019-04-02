@@ -596,7 +596,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.primary_caps = ConcatPrimaryCaps(dim, dim, 1, P=4, stride=1)
+        self.primary_caps = ConcatPrimaryCaps(A=dim, B=dim, 1, P=4, stride=1)
         self.convcaps = ConcatConvCaps(B=dim, C=dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
