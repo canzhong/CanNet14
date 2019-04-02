@@ -20,7 +20,7 @@ from torchdiffeq import odeint_adjoint as odeint
 
 # Training settings
 parser = argparse.ArgumentParser(description='CanNet14')
-parser.add_argument('--batch-size', type=int, default=12, metavar='N',
+parser.add_argument('--batch-size', type=int, default=13, metavar='N',
                     help='input batch size for training (default: 128)')
 parser.add_argument('--test-batch-size', type=int, default=24, metavar='N',
                     help='input batch size for testing (default: 1000)')
