@@ -14,7 +14,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from loss import SpreadLoss
 from torchdiffeq import odeint_adjoint as odeint
-from summary import summaryd
+from summary import summary
 
 #from datasets import smallNORB
 
