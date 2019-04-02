@@ -112,7 +112,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1, padding='same',
+    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
@@ -578,7 +578,7 @@ class ConcatPrimaryCaps(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatConvCaps, self).__init__()
-        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
+        self._layers2 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
