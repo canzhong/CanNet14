@@ -1018,7 +1018,7 @@ if __name__ == '__main__':
 
     #Create a logger associated with our model
     logger.info(model)
-    logger.info('Number of parameters: {}\n{}'.format(count_parameters(model),     ))
+    logger.info('Number of parameters: {}'.format(count_parameters(model))
 
 
     #Use a Spreadloss with with has an increasing m set by a scheduler
