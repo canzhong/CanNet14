@@ -78,16 +78,16 @@ class PrimaryCaps(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        print(x.shape)
+        print(x.shape+"1")
         p = self.pose(x)
-        print(p.shape)
+        print(p.shape+"2")
         a = self.a(x)
-        print(a.shape)
+        print(a.shape+"3")
         a = self.sigmoid(a)
         out = torch.cat([p, a], dim=1)
-        print(out.shape)
+        print(out.shape+"4")
         out = out.permute(0, 2, 3, 1)
-        print(out.shape)
+        print(out.shape+"5")
         return out
 
 
@@ -296,8 +296,9 @@ class ConvCaps(nn.Module):
         return v
 
     def forward(self, x):
+        print(x.shape+"6")
         b, h, w, c = x.shape
-        print(b,h,w,c)
+
         if not self.w_shared:
             # add patches
             oh, ow = h, w#self.add_pathes(x, self.B, self.K, self.psize, self.stride)
@@ -517,7 +518,7 @@ class ConvCaps2(nn.Module):
         return v
 
     def forward(self, x):
-        print(x.shape)
+
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
@@ -563,8 +564,8 @@ class ConcatConvCaps(nn.Module):
         self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
-        print(t.shape)
-        print(x.shape)
+        print(t.shape+"7")
+        print(x.shape+"8")
         tt = torch.ones_like(x[:, :1, :, :]) * t
         ttx = torch.cat([tt, x], 1)
         return self._layers(ttx)
