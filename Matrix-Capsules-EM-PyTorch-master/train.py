@@ -107,7 +107,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1,
+    def __init__(self, B=32, C=32, K=3, P=4, stride=2, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
@@ -551,7 +551,7 @@ class ConvCaps2(nn.Module):
 
 
 class ConcatConvCaps(nn.Module):
-    def __init__(self, B=32, C=32, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
+    def __init__(self, B=32, C=32, K=3, stride=2, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
         self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
@@ -630,39 +630,7 @@ def count_parameters(model):
 
 
 class CapsNet(nn.Module):
-    """A network with one ReLU convolutional layer followed by
-    a primary convolutional capsule layer and two more convolutional capsule layers.
 
-    Suppose image shape is 28x28x1, the feature maps change as follows:
-    1. ReLU Conv1
-        (_, 1, 28, 28) -> 5x5 filters, 32 out channels, stride 2 with padding
-        x -> (_, 32, 14, 14)
-    2. PrimaryCaps
-        (_, 32, 14, 14) -> 1x1 filter, 32 out capsules, stride 1, no padding
-        x -> pose: (_, 14, 14, 32x4x4), activation: (_, 14, 14, 32)
-    3. ConvCaps1
-        (_, 14, 14, 32x(4x4+1)) -> 3x3 filters, 32 out capsules, stride 2, no padding
-        x -> pose: (_, 6, 6, 32x4x4), activation: (_, 6, 6, 32)
-    4. ConvCaps2
-        (_, 6, 6, 32x(4x4+1)) -> 3x3 filters, 32 out capsules, stride 1, no padding
-        x -> pose: (_, 4, 4, 32x4x4), activation: (_, 4, 4, 32)
-    5. ClassCaps
-        (_, 4, 4, 32x(4x4+1)) -> 1x1 conv, 10 out capsules
-        x -> pose: (_, 10x4x4), activation: (_, 10)
-
-        Note that ClassCaps only outputs activation for each class
-
-    Args:
-        A: output channels of normal conv
-        B: output channels of primary caps
-        C: output channels of 1st conv caps
-        D: output channels of 2nd conv caps
-        E: output channels of class caps (i.e. number of classes)
-        K: kernel of conv caps
-        P: size of square pose matrix
-        iters: number of EM iterations
-        ...
-    """
     def __init__(self, A=32, B=32, C=32, D=32, E=10, K=3, P=4, iters=2):
         super(CapsNet, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=A,
@@ -689,148 +657,6 @@ class CapsNet(nn.Module):
         return x
 
 
-
-"""
-def get_setting(args):
-    kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-    path = os.path.join(args.data_folder, args.dataset)
-    if args.dataset == 'mnist':
-        num_class = 10
-        train_loader = torch.utils.data.DataLoader(
-            datasets.MNIST(path, train=True, download=True,
-                           transform=transforms.Compose([
-                               transforms.ToTensor(),
-                               transforms.Normalize((0.1307,), (0.3081,))
-                           ])),
-            batch_size=args.batch_size, shuffle=True, **kwargs)
-        test_loader = torch.utils.data.DataLoader(
-            datasets.MNIST(path, train=False,
-                           transform=transforms.Compose([
-                               transforms.ToTensor(),
-                               transforms.Normalize((0.1307,), (0.3081,))
-                           ])),
-            batch_size=args.test_batch_size, shuffle=True, **kwargs)
-    elif args.dataset == 'smallNORB':
-        num_class = 5
-        train_loader = torch.utils.data.DataLoader(
-            smallNORB(path, train=True, download=True,
-                      transform=transforms.Compose([
-                          transforms.Resize(48),
-                          transforms.RandomCrop(32),
-                          transforms.ColorJitter(brightness=32./255, contrast=0.5),
-                          transforms.ToTensor()
-                      ])),
-            batch_size=args.batch_size, shuffle=True, **kwargs)
-        test_loader = torch.utils.data.DataLoader(
-            smallNORB(path, train=False,
-                      transform=transforms.Compose([
-                          transforms.Resize(48),
-                          transforms.CenterCrop(32),
-                          transforms.ToTensor()
-                      ])),
-            batch_size=args.test_batch_size, shuffle=True, **kwargs)
-    else:
-        raise NameError('Undefined dataset {}'.format(args.dataset))
-    return num_class, train_loader, test_loader
-
-def accuracy(output, target, topk=(1,)):
-    Computes the precision@k for the specified values of k
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-        res.append(correct_k.mul_(100.0 / batch_size))
-
-    return res
-
-
-class AverageMeter(object):
-    Computes and stores the average and current value
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
-
-def train(train_loader, model, criterion, optimizer, epoch, device):
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
-
-    model.train()
-    train_len = len(train_loader)
-    epoch_acc = 0
-    end = time.time()
-
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data_time.update(time.time() - end)
-
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = model(data)
-        r = (1.*batch_idx + (epoch-1)*train_len) / (args.epochs*train_len)
-        loss = criterion(output, target, r)
-        acc = accuracy(output, target)
-        loss.backward()
-        optimizer.step()
-
-        batch_time.update(time.time() - end)
-        end = time.time()
-
-        epoch_acc += acc[0].item()
-        if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {}\t[{}/{} ({:.0f}%)]\t'
-                  'Loss: {:.6f}\tAccuracy: {:.6f}\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data {data_time.val:.3f} ({data_time.avg:.3f})'.format(
-                  epoch, batch_idx * len(data), len(train_loader.dataset),
-                  100. * batch_idx / len(train_loader),
-                  loss.item(), acc[0].item(),
-                  batch_time=batch_time, data_time=data_time))
-    return epoch_acc
-
-
-def snapshot(model, folder, epoch):
-    path = os.path.join(folder, 'model_{}.pth'.format(epoch))
-    if not os.path.exists(os.path.dirname(path)):
-        os.makedirs(os.path.dirname(path))
-    print('saving model to {}'.format(path))
-    torch.save(model.state_dict(), path)
-
-
-def test(test_loader, model, criterion, device):
-    model.eval()
-    test_loss = 0
-    acc = 0
-    test_len = len(test_loader)
-    with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            test_loss += criterion(output, target, r=1).item()
-            acc += accuracy(output, target)[0].item()
-
-    test_loss /= test_len
-    acc /= test_len
-    print('\nTest set: Average loss: {:.6f}, Accuracy: {:.6f} \n'.format(
-        test_loss, acc))
-    return acc
-"""
 
 class RunningAverageMeter(object):
     """Computes and stores the average and current value"""
@@ -1061,3 +887,39 @@ if __name__ == '__main__':
                         b_nfe_meter.avg, train_acc, val_acc
                     )
                 )
+
+
+
+    """A network with one ReLU convolutional layer followed by
+    a primary convolutional capsule layer and two more convolutional capsule layers.
+
+    Suppose image shape is 28x28x1, the feature maps change as follows:
+    1. ReLU Conv1
+        (_, 1, 28, 28) -> 5x5 filters, 32 out channels, stride 2 with padding
+        x -> (_, 32, 14, 14)
+    2. PrimaryCaps
+        (_, 32, 14, 14) -> 1x1 filter, 32 out capsules, stride 1, no padding
+        x -> pose: (_, 14, 14, 32x4x4), activation: (_, 14, 14, 32)
+    3. ConvCaps1
+        (_, 14, 14, 32x(4x4+1)) -> 3x3 filters, 32 out capsules, stride 2, no padding
+        x -> pose: (_, 6, 6, 32x4x4), activation: (_, 6, 6, 32)
+    4. ConvCaps2
+        (_, 6, 6, 32x(4x4+1)) -> 3x3 filters, 32 out capsules, stride 1, no padding
+        x -> pose: (_, 4, 4, 32x4x4), activation: (_, 4, 4, 32)
+    5. ClassCaps
+        (_, 4, 4, 32x(4x4+1)) -> 1x1 conv, 10 out capsules
+        x -> pose: (_, 10x4x4), activation: (_, 10)
+
+        Note that ClassCaps only outputs activation for each class
+
+    Args:
+        A: output channels of normal conv
+        B: output channels of primary caps
+        C: output channels of 1st conv caps
+        D: output channels of 2nd conv caps
+        E: output channels of class caps (i.e. number of classes)
+        K: kernel of conv caps
+        P: size of square pose matrix
+        iters: number of EM iterations
+        ...
+    """
