@@ -117,7 +117,7 @@ class ConvCaps(nn.Module):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
         # Note that .contiguous() for 3+ dimensional tensors is very slow
-        self.B = B
+        self.B = B + 1
         self.C = C
         self.K = K
         self.P = P
@@ -295,13 +295,22 @@ class ConvCaps(nn.Module):
         v = v.view(b, h*w*B, C, psize)
         return v
 
-    def forward(self, x):
-        print(x.shape, "6")
+    def forward(self, t, x):
+        print(t.shape, "t6")
+        print(x.shape, "x6")
+
+        tt = torch.ones_like(x[:, :1, :, :]) * t
+        print(tt.shape, "tt6")
+        ttx = torch.cat([tt, x], 1)
+        print(ttx.shape, "ttx6")
+
+        x = ttx
+        print(x.shape, "x26")
         b, h, w, c = x.shape
 
         if not self.w_shared:
             # add patches
-            oh, ow = h, w#self.add_pathes(x, self.B, self.K, self.psize, self.stride)
+            x, oh, ow = self.add_pathes(x, self.B, self.K, self.psize, self.stride)
 
             # transform view
 
@@ -580,7 +589,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.convcaps = ConcatConvCaps(B=dim, C=dim)
+        self.convcaps = ConvCaps(B=dim, C=dim)
         self.nfe = 0
 
     def forward(self, t, x):
