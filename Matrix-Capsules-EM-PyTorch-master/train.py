@@ -14,6 +14,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from loss import SpreadLoss
 from torchdiffeq import odeint_adjoint as odeint
+from summary import summaryd
 
 #from datasets import smallNORB
 
@@ -296,6 +297,7 @@ class ConvCaps(nn.Module):
             oh, ow = h, w#self.add_pathes(x, self.B, self.K, self.psize, self.stride)
 
             # transform view
+
             p_in = x[:, :, :, :, :, :self.B*self.psize].contiguous()
             a_in = x[:, :, :, :, :, self.B*self.psize:].contiguous()
             p_in = p_in.view(b*oh*ow, self.K*self.K*self.B, self.psize)
@@ -992,7 +994,7 @@ if __name__ == '__main__':
 
     #Sequential Model of Independent Layers for test network
     model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
-
+    summary(model, (3, 224, 224))
     #Create a logger associated with our model
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
