@@ -292,6 +292,7 @@ class ConvCaps(nn.Module):
 
     def forward(self, x):
         b, h, w, c = x.shape
+        print(b,h,w,c)
         if not self.w_shared:
             # add patches
             oh, ow = h, w#self.add_pathes(x, self.B, self.K, self.psize, self.stride)
