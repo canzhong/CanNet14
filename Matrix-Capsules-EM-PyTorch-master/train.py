@@ -608,7 +608,6 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         print(x.shape, "capsode10")
         self.nfe += 1
         #out = self.primary_caps(x)
-        print(out.shape, "capsode94")
         out = self.convcaps(t, x)
         print(out.shape, "capsode95")
         return out
