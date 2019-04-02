@@ -594,7 +594,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=dim, kernel_size=5, stride=2, padding=2)
         self.bn1 = nn.BatchNorm2d(num_features=dim, eps=0.001, momentum=0.1, affine=True)
         self.relu1 = nn.ReLU(inplace=False)
-        self.primary_caps = PrimaryCaps(dim, dim, 1, P, stride=1)
+        self.primary_caps = PrimaryCaps(dim, dim, 1, P=4, stride=1)
         self.convcaps = ConcatConvCaps(B=dim, C=dim)
         self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
