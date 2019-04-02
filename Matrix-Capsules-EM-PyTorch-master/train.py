@@ -293,7 +293,7 @@ class ConvCaps(nn.Module):
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
-            x, oh, ow = self.add_pathes(x, self.B, self.K, self.psize, self.stride)
+            oh, ow = h, w#self.add_pathes(x, self.B, self.K, self.psize, self.stride)
 
             # transform view
             p_in = x[:, :, :, :, :, :self.B*self.psize].contiguous()
