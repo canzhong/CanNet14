@@ -578,7 +578,7 @@ class ConcatPrimaryCaps(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatConvCaps, self).__init__()
-        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=3, stride=2, iters=1, coor_add=False, w_shared=False)
+        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
@@ -597,7 +597,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.primary_caps = ConcatPrimaryCaps(dim)
+        self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=1, stride=1)
+
         self.convcaps = ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
@@ -606,7 +607,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         print(t.shape, "capsode9")
         print(x.shape, "capsode10")
         self.nfe += 1
-        out = self.primary_caps(t, x)
+        out = self.primary_caps(x)
         print(out.shape, "capsode94")
         out = self.convcaps(t, out)
         print(out.shape, "capsode95")
