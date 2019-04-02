@@ -811,7 +811,7 @@ if __name__ == '__main__':
     batches_per_epoch = len(train_loader)
     #Independent Layers of the test networks
     featuremaps = [
-        nn.Conv2d(1, 12, 3, 1),
+        nn.Conv2d(1, 12, 3, 1, bias=False),
         nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
         nn.ReLU(inplace=False),
         PrimaryCaps(12, 12, 1, 4, 1),
