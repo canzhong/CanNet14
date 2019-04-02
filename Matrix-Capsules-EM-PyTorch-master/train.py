@@ -572,6 +572,7 @@ class ConcatPrimaryCaps(nn.Module):
         print(ttx.shape, "ccpc4")
         out = self._layers1(ttx)
         print(out.shape, "ccpc5")
+        out = out[:, :, :, :17]
         return out
 
 class ConcatConvCaps(nn.Module):
