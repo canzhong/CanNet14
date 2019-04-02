@@ -87,7 +87,9 @@ class ConcatConv2d(nn.Module):
         print(t.shape, "1")
         print(x.shape, "2")
         tt = torch.ones_like(x[:, :1, :, :]) * t
+        print(tt.shape, "21")
         ttx = torch.cat([tt, x], 1)
+        print(x.shape, "22")
         return self._layer(ttx)
 
 
@@ -108,19 +110,19 @@ class ODEfunc(nn.Module):
         print(x.shape, "4")
         self.nfe += 1
         out = self.norm1(x)
-        print(x.shape, "5")
+        print(out.shape, "5")
         out = self.relu(out)
-        print(x.shape, "6")
+        print(out.shape, "6")
         out = self.conv1(t, out)
-        print(x.shape, "7")
+        print(out.shape, "7")
         out = self.norm2(out)
-        print(x.shape, "8")
+        print(out.shape, "8")
         out = self.relu(out)
-        print(x.shape, "9")
+        print(out.shape, "9")
         out = self.conv2(t, out)
-        print(x.shape, "10")
+        print(out.shape, "10")
         out = self.norm3(out)
-        print(x.shape, "11")
+        print(out.shape, "11")
         return out
 
 
@@ -135,6 +137,7 @@ class ODEBlock(nn.Module):
         print(x.shape, "12")
         self.integration_time = self.integration_time.type_as(x)
         out = odeint(self.odefunc, x, self.integration_time, rtol=args.tol, atol=args.tol)
+        print(out.shape, "13")
         return out[1]
 
     @property

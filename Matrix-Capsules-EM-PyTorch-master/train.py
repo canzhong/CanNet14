@@ -567,8 +567,12 @@ class ConcatConvCaps(nn.Module):
         print(t.shape, "7")
         print(x.shape, "8")
         tt = torch.ones_like(x[:, :1, :, :]) * t
+        print(tt.shape, "81")
         ttx = torch.cat([tt, x], 1)
-        return self._layers(ttx)
+        print(ttx.shape, "82")
+        out = self._layers(ttx)
+        print(out.shape, "83")
+        return out
 
 
 class CapsODE(nn.Module): ##ODEFunc(nn.Module)
@@ -584,7 +588,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         print(x.shape, "10")
         self.nfe += 1
         out = self.convcaps(t, x)
-
+        print(out.shape, "91")
         return out
 
 
@@ -600,7 +604,8 @@ class CapsODEBlock(nn.Module):
         print(x.shape, "11")
         self.integration_time = self.integration_time.type_as(x)
         out = odeint(self.odefunc, x, self.integration_time, rtol=0.001, atol=0.001)
-
+        print(out.shape, "13")
+        print(out[1].shape, '14')
         return out[1]
 
     @property
