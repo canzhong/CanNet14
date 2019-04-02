@@ -559,9 +559,9 @@ class ConvCaps2(nn.Module):
         return out
 
 class ConcatPrimaryCaps(nn.Module):
-    def __init__(self, A=dim, B=dim, K=1, P=4, stride=1):
+    def __init__(self, dim):
         super(ConcatPrimaryCaps, self).__init__()
-        self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=K, P=4, stride=1)
+        self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=1, P=4, stride=1)
 
     def forward(self, t, x):
         print(t.shape, "ccpc1")
@@ -575,9 +575,9 @@ class ConcatPrimaryCaps(nn.Module):
         return out
 
 class ConcatConvCaps(nn.Module):
-    def __init__(self, B=dim, C=dim, K=3, stride=2, iters=1, coor_add=False, w_shared=False):
+    def __init__(self, dim):
         super(ConcatConvCaps, self).__init__()
-        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layers2 = ConvCaps(B=dim+1, C=dim+1, K=3, stride=2, iters=1, coor_add=False, w_shared=False)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
@@ -596,8 +596,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.primary_caps = ConcatPrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
-        self.convcaps = ConcatConvCaps(B=dim, C=dim)
+        self.primary_caps = ConcatPrimaryCaps(dim)
+        self.convcaps = ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
 
