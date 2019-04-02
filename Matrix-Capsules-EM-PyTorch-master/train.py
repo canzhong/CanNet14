@@ -297,7 +297,7 @@ class ConvCaps(nn.Module):
         return v
 
     def forward(self, x):
-        g
+        
         b, h, w, c = x.shape
 
         if not self.w_shared:
