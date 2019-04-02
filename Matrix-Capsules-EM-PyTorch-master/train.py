@@ -1,11 +1,9 @@
 from __future__ import print_function
 import argparse
 import logging
-from inspect import signature
 import os
 import time
 import numpy as np
-import string
 import torch
 import math
 import torch.nn as nn
@@ -108,7 +106,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=12, C=12, K=3, P=4, stride=1, iters=1,
+    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
@@ -295,7 +293,7 @@ class ConvCaps(nn.Module):
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
-            #x, oh, ow = self.add_pathes(x, self.B, self.K, self.psize, self.stride)
+            x, oh, ow = self.add_pathes(x, self.B, self.K, self.psize, self.stride)
 
             # transform view
             p_in = x[:, :, :, :, :, :self.B*self.psize].contiguous()
@@ -306,8 +304,8 @@ class ConvCaps(nn.Module):
 
             # em_routing
             p_out, a_out = self.caps_em_routing(v, a_in, self.C, self.eps)
-            p_out = p_out.view(b, h, w, self.C*self.psize)
-            a_out = a_out.view(b, h, w, self.C)
+            p_out = p_out.view(b, oh, ow, self.C*self.psize)
+            a_out = a_out.view(b, oh, ow, self.C)
             out = torch.cat([p_out, a_out], dim=3)
         else:
             assert c == self.B*(self.psize+1)
@@ -333,7 +331,7 @@ class ConvCaps(nn.Module):
 
 class ConvCaps2(nn.Module):
 
-    def __init__(self, B=12, C=12, K=3, P=4, stride=1, iters=1,
+    def __init__(self, B=32, C=32, K=3, P=4, stride=2, iters=3,
                  coor_add=False, w_shared=False):
         super(ConvCaps2, self).__init__()
         # TODO: lambda scheduler
@@ -551,21 +549,22 @@ class ConvCaps2(nn.Module):
 
 
 class ConcatConvCaps(nn.Module):
-    def __init__(self, B, C, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
+    def __init__(self, B=32, C=32, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
-        self._layers = ConvCaps(B, C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layer = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
-    #def forward(self, t, x):
-    #    tt = torch.ones_like(x[:, :1, :, :]) * t
-    #    ttx = torch.cat([tt, x], 1)
-    #    return self._layers(ttx)
+    def forward(self, t, x):
+        tt = torch.ones_like(x[:, :1, :, :]) * t
+        ttx = torch.cat([tt, x], 1)
+        return self._layers(ttx)
 
 
 class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
     def __init__(self, dim):
+
         super(CapsODE, self).__init__()
-        self.convcaps = (ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False))
+        self.convcaps = ConcatConvCaps(B=dim, C=dim)
         self.nfe = 0
 
     def forward(self, t, x):
@@ -587,7 +586,7 @@ class CapsODEBlock(nn.Module):
     def forward(self, x):
 
         self.integration_time = self.integration_time.type_as(x)
-        out = odeint(self.odefunc, x, self.integration_time, rtol=0.001, atol=0.001)
+        out = odeint(self.odefunc, x, integration_time, rtol=0.001, atol=0.001)
 
         return out[1]
 
@@ -598,28 +597,6 @@ class CapsODEBlock(nn.Module):
     @nfe.setter
     def nfe(self, value):
         self.odefunc.nfe = value
-
-
-class DiffEqWrapper(nn.Module):
-    def __init__(self, module):
-        super(DiffEqWrapper, self).__init__()
-        self.module = module
-        if len(signature(self.module.forward).parameters) == 1:
-            self.diffeq = lambda t, y: self.module(y)
-        elif len(signature(self.module.forward).parameters) == 2:
-            self.diffeq = self.module
-        else:
-            raise ValueError("Differential equation needs to either take (t, y) or (y,) as input.")
-
-    def forward(self, t, y):
-        return self.diffeq(t, y)
-
-    def __repr__(self):
-        return self.diffeq.__repr__()
-
-
-def diffeq_wrapper(layer):
-    return DiffEqWrapper(layer)
 
 
 def inf_generator(iterable):
@@ -693,7 +670,7 @@ class CapsNet(nn.Module):
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
         self.conv_caps1 = ConvCaps(B, C, K, P, stride=2, iters=iters)
-        #self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
+        self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
         self.class_caps = ConvCaps(D, E, 1, P, stride=1, iters=iters,
                                         coor_add=True, w_shared=True)
         self.nfe = 0
@@ -989,7 +966,7 @@ def accuracy(model, dataset_loader):
     return total_correct / len(dataset_loader.dataset)
 
 if __name__ == '__main__':
-
+    
     makedirs(args.save)
     logger = get_logger(logpath=os.path.join(args.save, 'logs'), filepath=os.path.abspath(__file__))
     logger.info(args)
@@ -1020,13 +997,12 @@ if __name__ == '__main__':
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
 
-
     #Use a Spreadloss with with has an increasing m set by a scheduler
     #TODO : parameterize this m value with respect to the network
     criterion = SpreadLoss(num_class=num_class, m_min=0.2, m_max=0.9)
     #Use SGD Optimizer, unsure if Adams will work for ODE based Nets.
     #TODO : Test with Adams and other optimizers.
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    optimizer = optim.SGD(model.paramters(), lr=args.lr, momentum=0.9)
     #Set the LR scheduler so it decays either on Plateau or periodically
     #TODO : Test with both variations. Then test with a completely randomized LR.
     #Idea is that with randomization, the function will be able to fit faster but not to overfit
