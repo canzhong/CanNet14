@@ -143,6 +143,7 @@ class ConvCaps(nn.Module):
         # op
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=2)
+        self.nfe = 0
 
     def m_step(self, a_in, r, v, eps, b, B, C, psize):
         """
@@ -296,6 +297,7 @@ class ConvCaps(nn.Module):
         return v
 
     def forward(self, t, x):
+        self.nfe += 1
         print(t.shape, "t6")
         print(x.shape, "x6")
 
@@ -589,17 +591,57 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.convcaps = ConvCaps(B=dim, C=dim)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=dim, kernel_size=5, stride=2, padding=2)
+        self.bn1 = nn.BatchNorm2d(num_features=dim, eps=0.001, momentum=0.1, affine=True)
+        self.relu1 = nn.ReLU(inplace=False)
+        self.primary_caps = PrimaryCaps(dim, dim, 1, P, stride=1)
+        self.convcaps = ConcatConvCaps(B=dim, C=dim)
+        self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
 
     def forward(self, t, x):
         print(t.shape, "9")
         print(x.shape, "10")
         self.nfe += 1
-        out = self.convcaps(t, x)
+        out = self.conv1(x)
         print(out.shape, "91")
+        out = self.bn1(out)
+        print(out.shape, "92")
+        out = self.relu1(out)
+        print(out.shape, "93")
+        out = self.primary_caps(out)
+        print(out.shape, "94")
+        out = self.convcaps(t, out)
+        print(out.shape, "95")
+        out = self.classcaps(t, out)
+        print(out.shape, "96")
         return out
 
+
+    def __init__(self, A=32, B=32, C=32, D=32, E=10, K=3, P=4, iters=2):
+        super(CapsNet, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=A,
+                               kernel_size=5, stride=2, padding=2)
+        self.bn1 = nn.BatchNorm2d(num_features=A, eps=0.001,
+                                 momentum=0.1, affine=True)
+        self.relu1 = nn.ReLU(inplace=False)
+        self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
+        self.conv_caps1 = ConvCaps(B, C, K, P, stride=2, iters=iters)
+        self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
+        self.class_caps = ConvCaps(D, E, 1, P, stride=1, iters=iters,
+                                        coor_add=True, w_shared=True)
+        self.nfe = 0
+
+    def forward(self, t, x):
+        self.nfe += 1
+        out = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu1(x)
+        x = self.primary_caps(x)
+        x = self.conv_caps1(x)
+
+        x = self.class_caps(x)
+        return x
 
 class CapsODEBlock(nn.Module):
 
@@ -844,11 +886,10 @@ if __name__ == '__main__':
     classsegregation = [ConvCaps2(12, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
 
     #Sequential Model of Independent Layers for test network
-    model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
+    model = nn.Sequential(*featureencapsulation, *classsegregation).to(device)
 
     #Create a logger associated with our model
-    with open('cool.txt', "w") as f:
-        f.write(str(logger.info(model)))
+    logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
 
     #Use a Spreadloss with with has an increasing m set by a scheduler
