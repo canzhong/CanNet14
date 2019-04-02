@@ -20,9 +20,9 @@ from torchdiffeq import odeint_adjoint as odeint
 
 # Training settings
 parser = argparse.ArgumentParser(description='CanNet14')
-parser.add_argument('--batch-size', type=int, default=128, metavar='N',
+parser.add_argument('--batch-size', type=int, default=12, metavar='N',
                     help='input batch size for training (default: 128)')
-parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
+parser.add_argument('--test-batch-size', type=int, default=24, metavar='N',
                     help='input batch size for testing (default: 1000)')
 parser.add_argument('--test-intvl', type=int, default=1, metavar='N',
                     help='test intvl (default: 1)')
@@ -820,7 +820,7 @@ if __name__ == '__main__':
     batches_per_epoch = len(train_loader)
     #Independent Layers of the test networks
     featuremaps = [
-        nn.Conv2d(1, 12, 3, 1, bias=False),
+        nn.Conv2d(in_channels=1, out_channels=12, kernel_size=5, stride=2, padding=2),
         nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
         nn.ReLU(inplace=False),
         PrimaryCaps(12, 12, 1, 4, 1),
