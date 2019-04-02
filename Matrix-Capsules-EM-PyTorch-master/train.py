@@ -1019,7 +1019,7 @@ if __name__ == '__main__':
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
     f = open("logs.txt", "w+")
-    f.write("logger.info('model')")
+    f.write(logger.info(model))
     logger.print_function(logger.info(model))
     #Use a Spreadloss with with has an increasing m set by a scheduler
     #TODO : parameterize this m value with respect to the network
