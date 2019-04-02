@@ -143,7 +143,7 @@ class ConvCaps(nn.Module):
         # op
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=2)
-        self.nfe = 0
+
 
     def m_step(self, a_in, r, v, eps, b, B, C, psize):
         """
@@ -297,7 +297,7 @@ class ConvCaps(nn.Module):
         return v
 
     def forward(self, x):
-        
+
         b, h, w, c = x.shape
 
         if not self.w_shared:
@@ -565,14 +565,14 @@ class ConcatConvCaps(nn.Module):
         self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
-        print(t.shape, "7")
-        print(x.shape, "8")
+        print(t.shape, "concatconv7")
+        print(x.shape, "concatconv8")
         tt = torch.ones_like(x[:, :1, :, :]) * t
-        print(tt.shape, "81")
+        print(tt.shape, "concatconv81")
         ttx = torch.cat([tt, x], 1)
-        print(ttx.shape, "82")
+        print(ttx.shape, "concatconv82")
         out = self._layers(ttx)
-        print(out.shape, "83")
+        print(out.shape, "concatconv83")
         return out
 
 
@@ -586,25 +586,23 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(dim, dim, 1, P=4, stride=1)
         self.convcaps = ConcatConvCaps(B=dim, C=dim)
-        self.classcaps = ConcatConvCaps(B=dim, C=dim )
+        #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = 0
 
     def forward(self, t, x):
-        print(t.shape, "9")
-        print(x.shape, "10")
+        print(t.shape, "capsode9")
+        print(x.shape, "capsode10")
         self.nfe += 1
         out = self.conv1(x)
-        print(out.shape, "91")
+        print(out.shape, "capsode91")
         out = self.bn1(out)
-        print(out.shape, "92")
+        print(out.shape, "capsode92")
         out = self.relu1(out)
-        print(out.shape, "93")
+        print(out.shape, "capsode93")
         out = self.primary_caps(out)
-        print(out.shape, "94")
+        print(out.shape, "capsode94")
         out = self.convcaps(t, out)
-        print(out.shape, "95")
-        out = self.classcaps(t, out)
-        print(out.shape, "96")
+        print(out.shape, "capsode95")
         return out
 
 
@@ -618,11 +616,11 @@ class CapsODEBlock(nn.Module):
         self.integration_time = torch.tensor([0, 1]).float()
 
     def forward(self, x):
-        print(x.shape, "11")
+        print(x.shape, "capdsode11")
         self.integration_time = self.integration_time.type_as(x)
         out = odeint(self.odefunc, x, self.integration_time, rtol=0.001, atol=0.001)
-        print(out.shape, "13")
-        print(out[1].shape, '14')
+        print(out.shape, "capdsode13")
+        print(out[1].shape, 'capsode14')
         return out[1]
 
     @property
