@@ -108,7 +108,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1,
+    def __init__(self, B=12, C=12, K=3, P=4 stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
@@ -333,7 +333,7 @@ class ConvCaps(nn.Module):
 
 class ConvCaps2(nn.Module):
 
-    def __init__(self, B=32, C=32, K=3, P=4, stride=2, iters=3,
+    def __init__(self, B=12, C=12, K=3, P=4, stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps2, self).__init__()
         # TODO: lambda scheduler
@@ -1018,10 +1018,9 @@ if __name__ == '__main__':
 
     #Create a logger associated with our model
     logger.info(model)
-    logger.info('Number of parameters: {}'.format(count_parameters(model)))
-    f = open("logs.txt", "w+")
-    f.write(string(logger.info(model)))
-    logger.print_function(logger.info(model))
+    logger.info('Number of parameters: {}\n{}'.format(count_parameters(model),     ))
+
+
     #Use a Spreadloss with with has an increasing m set by a scheduler
     #TODO : parameterize this m value with respect to the network
     criterion = SpreadLoss(num_class=num_class, m_min=0.2, m_max=0.9)
