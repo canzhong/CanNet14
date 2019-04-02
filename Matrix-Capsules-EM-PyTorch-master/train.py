@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 import logging
+from inspect import signature
 import os
 import time
 import numpy as np
@@ -304,8 +305,8 @@ class ConvCaps(nn.Module):
 
             # em_routing
             p_out, a_out = self.caps_em_routing(v, a_in, self.C, self.eps)
-            p_out = p_out.view(b, oh, ow, self.C*self.psize)
-            a_out = a_out.view(b, oh, ow, self.C)
+            p_out = p_out.view(b, h, w, self.C*self.psize)
+            a_out = a_out.view(b, h, w, self.C)
             out = torch.cat([p_out, a_out], dim=3)
         else:
             assert c == self.B*(self.psize+1)
@@ -509,7 +510,6 @@ class ConvCaps2(nn.Module):
         return v
 
     def forward(self, x):
-        x = x[:, :1, :, :]
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
@@ -552,26 +552,25 @@ class ConvCaps2(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, B, C, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
-        self._layers = ConvCaps(B+1, C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layers = ConvCaps(B, C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
-    def forward(self, t, x):
-        tt = torch.ones_like(x[:, :1, :, :]) * t
-        ttx = torch.cat([tt, x], 1)
-        return self._layers(ttx)
+    #def forward(self, t, x):
+    #    tt = torch.ones_like(x[:, :1, :, :]) * t
+    #    ttx = torch.cat([tt, x], 1)
+    #    return self._layers(ttx)
 
 
 class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
     def __init__(self, dim):
-
         super(CapsODE, self).__init__()
-        self.convcaps = ConcatConvCaps(B=dim, C=dim)
+        self.convcaps = diffeq_wrapper(ConvCaps(B, C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared))
         self.nfe = 0
 
     def forward(self, t, x):
 
         self.nfe += 1
-        out = self.convcaps(t, x[:, :1, :, :])
+        out = self.convcaps(t, x)
 
         return out
 
@@ -598,6 +597,28 @@ class CapsODEBlock(nn.Module):
     @nfe.setter
     def nfe(self, value):
         self.odefunc.nfe = value
+
+
+class DiffEqWrapper(nn.Module):
+    def __init__(self, module):
+        super(DiffEqWrapper, self).__init__()
+        self.module = module
+        if len(signature(self.module.forward).parameters) == 1:
+            self.diffeq = lambda t, y: self.module(y)
+        elif len(signature(self.module.forward).parameters) == 2:
+            self.diffeq = self.module
+        else:
+            raise ValueError("Differential equation needs to either take (t, y) or (y,) as input.")
+
+    def forward(self, t, y):
+        return self.diffeq(t, y)
+
+    def __repr__(self):
+        return self.diffeq.__repr__()
+
+
+def diffeq_wrapper(layer):
+    return DiffEqWrapper(layer)
 
 
 def inf_generator(iterable):
