@@ -565,7 +565,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
     def __init__(self, dim):
         super(CapsODE, self).__init__()
-        self.convcaps = diffeq_wrapper(ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False))
+        self.convcaps = (ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False))
         self.nfe = 0
 
     def forward(self, t, x):
@@ -693,7 +693,7 @@ class CapsNet(nn.Module):
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
         self.conv_caps1 = ConvCaps(B, C, K, P, stride=2, iters=iters)
-        self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
+        #self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
         self.class_caps = ConvCaps(D, E, 1, P, stride=1, iters=iters,
                                         coor_add=True, w_shared=True)
         self.nfe = 0
