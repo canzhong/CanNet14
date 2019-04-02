@@ -14,7 +14,7 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from loss import SpreadLoss
 from torchdiffeq import odeint_adjoint as odeint
-from summary import summary
+
 
 #from datasets import smallNORB
 
@@ -820,7 +820,7 @@ if __name__ == '__main__':
 
     #Sequential Model of Independent Layers for test network
     model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
-    summary(model, (3, 224, 224))
+
     #Create a logger associated with our model
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
