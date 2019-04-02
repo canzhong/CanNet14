@@ -89,7 +89,7 @@ class ConcatConv2d(nn.Module):
         tt = torch.ones_like(x[:, :1, :, :]) * t
         print(tt.shape, "21")
         ttx = torch.cat([tt, x], 1)
-        print(x.shape, "22")
+        print(ttx.shape, "22")
         return self._layer(ttx)
 
 
