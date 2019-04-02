@@ -578,7 +578,7 @@ class ConcatPrimaryCaps(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatConvCaps, self).__init__()
-        self._layers2 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
+        self._layers2 = ConvCaps(B=dim, C=dim+1, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
