@@ -549,9 +549,9 @@ class ConvCaps2(nn.Module):
 
 
 class ConcatConvCaps(nn.Module):
-    def __init__(self, B=32, C=32, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
+    def __init__(self, B, C, K=3, stride=1, iters=1, coor_add=False, w_shared=False):
         super(ConcatConvCaps, self).__init__()
-        self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
+        self._layers = ConvCaps(B+1, C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
         tt = torch.ones_like(x[:, :1, :, :]) * t
@@ -570,7 +570,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def forward(self, t, x):
 
         self.nfe += 1
-        out = self.convcaps(t, x)
+        out = self.convcaps(t, x[:, :1, :, :])
 
         return out
 
