@@ -564,7 +564,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
     def __init__(self, dim):
         super(CapsODE, self).__init__()
-        self.convcaps = diffeq_wrapper(ConvCaps(B=dim, C=dim, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared))
+        self.convcaps = diffeq_wrapper(ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False))
         self.nfe = 0
 
     def forward(self, t, x):
