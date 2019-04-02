@@ -78,11 +78,16 @@ class PrimaryCaps(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        print(x.shape)
         p = self.pose(x)
+        print(p.shape)
         a = self.a(x)
+        print(a.shape)
         a = self.sigmoid(a)
         out = torch.cat([p, a], dim=1)
+        print(out.shape)
         out = out.permute(0, 2, 3, 1)
+        print(out.shape)
         return out
 
 
@@ -512,6 +517,7 @@ class ConvCaps2(nn.Module):
         return v
 
     def forward(self, x):
+        print(x.shape)
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
@@ -557,6 +563,8 @@ class ConcatConvCaps(nn.Module):
         self._layers = ConvCaps(B=B+1, C=C, K=K, stride=stride, iters=iters, coor_add=coor_add, w_shared=w_shared)
 
     def forward(self, t, x):
+        print(t.shape)
+        print(x.shape)
         tt = torch.ones_like(x[:, :1, :, :]) * t
         ttx = torch.cat([tt, x], 1)
         return self._layers(ttx)
