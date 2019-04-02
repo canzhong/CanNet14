@@ -112,7 +112,7 @@ class ConvCaps(nn.Module):
         h', w' is computed the same way as convolution layer
         parameter size is: K*K*B*C*P*P + B*P*P
     """
-    def __init__(self, B=32, C=32, K=3, P=4, stride=2, iters=1,
+    def __init__(self, B=32, C=32, K=3, P=4, stride=1, iters=1,
                  coor_add=False, w_shared=False):
         super(ConvCaps, self).__init__()
         # TODO: lambda scheduler
@@ -597,7 +597,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
     def __init__(self, dim):
 
         super(CapsODE, self).__init__()
-        self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
+        #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
 
         self.convcaps = ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
@@ -607,9 +607,9 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         print(t.shape, "capsode9")
         print(x.shape, "capsode10")
         self.nfe += 1
-        out = self.primary_caps(x)
+        #out = self.primary_caps(x)
         print(out.shape, "capsode94")
-        out = self.convcaps(t, out)
+        out = self.convcaps(t, x)
         print(out.shape, "capsode95")
         return out
 
@@ -852,7 +852,7 @@ if __name__ == '__main__':
         nn.Conv2d(in_channels=1, out_channels=12, kernel_size=5, stride=2, padding=2),
         nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
         nn.ReLU(inplace=False),
-        #PrimaryCaps(12, 12, 1, 4, 1),
+        PrimaryCaps(12, 12, 1, 4, 1),
     ]
     featureencapsulation = [CapsODEBlock(CapsODE(12))]
     classsegregation = [ConvCaps2(12, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
