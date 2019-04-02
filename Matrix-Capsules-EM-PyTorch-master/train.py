@@ -838,8 +838,8 @@ if __name__ == '__main__':
     model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
 
     #Create a logger associated with our model
-    with open('cool.txt', "r") as f:
-        f.write(logger.info(model))
+    with open('cool.txt', "w") as f:
+        f.write(str(logger.info(model)))
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
 
     #Use a Spreadloss with with has an increasing m set by a scheduler
