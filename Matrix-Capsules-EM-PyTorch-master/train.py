@@ -508,7 +508,8 @@ class ConvCaps2(nn.Module):
         v = v.view(b, h*w*B, C, psize)
         return v
 
-    def forward(self, x[:, :1, :, :]):
+    def forward(self, x):
+        x = x[:, :1, :, :]
         b, h, w, c = x.shape
         if not self.w_shared:
             # add patches
