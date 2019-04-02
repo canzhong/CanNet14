@@ -580,7 +580,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         self.nfe = 0
 
     def forward(self, t, x):
-
+        print(t.shape, "9")
+        print(x.shape, "10")
         self.nfe += 1
         out = self.convcaps(t, x)
 
