@@ -699,8 +699,8 @@ class CapsNet(nn.Module):
         out = self.bn1(out)
         out = self.relu1(out)
         out = self.primary_caps(out)
-        out = self.caps1ode(out, t)
-        out = self.caps2ode(out, t)
+        out = self.capsblock(out, t)
+        out = self.caps2block(out, t)
 
         out = self.class_caps(out)
         return out
