@@ -706,6 +706,12 @@ class CapsNet(nn.Module):
         out = self.class_caps(out)
         return out
 
+    def returnnef(self):
+        return capsblock.nfe, caps2block.nfe
+
+    def resetnef(self):
+        capsblock.nfe = 0
+        caps2block.nfe = 0
 
 
 class RunningAverageMeter(object):
@@ -898,19 +904,22 @@ if __name__ == '__main__':
         #Set, M dependent on itr, then Determine how wrong it is relative to y
         r = (itr / (args.epochs * batches_per_epoch))
         loss = criterion(logits, y, r)
+        r1, r2 = model.returnnef()
+        model.resetnef()
         #Find the ODE Solver's answer
-        nfe_forward = featureencapsulation[0].nfe
-        feature_layers[0].nfe = 0
+        #nfe_forward = model[capsblock].nfe
+        #feature_layers[0].nfe = 0
         #Backward propagate through ODE and then update.
         loss.backward()
         optimizer.step()
         #Log and reset the new parameter when it steps back
-        nfe_backward = featureencapsulation[0].nfe
-        featureencapsulation[0].nfe = 0
+        #nfe_backward = featureencapsulation[0].nfe
+        r3, r4 = model.returnnef()
+        model.resetnef()
 
         batch_time_meter.update(time.time() - end)
-        f_nfe_meter.update(nfe_forward)
-        b_nfe_meter.update(nfe_backward)
+        f_nfe_meter.update(r2)
+        b_nfe_meter.update(r2)
         end = time.time()
 
         if itr % batches_per_epoch == 0:
