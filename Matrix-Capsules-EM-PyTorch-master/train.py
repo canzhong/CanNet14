@@ -847,7 +847,7 @@ if __name__ == '__main__':
     makedirs(args.save)
     logger = get_logger(logpath=os.path.join(args.save, 'logs'), filepath=os.path.abspath(__file__))
     logger.info(args)
-    device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0')
     is_odenet = True
     num_class = 10
     #Load the datasets into different loaders.
