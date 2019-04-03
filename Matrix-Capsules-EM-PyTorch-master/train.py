@@ -510,8 +510,8 @@ class ConvCaps2(nn.Module):
         assert h == w
         v = v.view(b, h, w, B, C, psize)
         coor = torch.arange(h, dtype=torch.float32) / h
-        coor_h = torch.cuda.FloatTensor(1, h, 1, 1, 1, self.psize).fill_(0.)
-        coor_w = torch.cuda.FloatTensor(1, 1, w, 1, 1, self.psize).fill_(0.)
+        coor_h = torch.FloatTensor(1, h, 1, 1, 1, self.psize).fill_(0.)
+        coor_w = torch.FloatTensor(1, 1, w, 1, 1, self.psize).fill_(0.)
         coor_h[0, :, 0, 0, 0, 0] = coor
         coor_w[0, 0, :, 0, 0, 1] = coor
         v = v + coor_h + coor_w
