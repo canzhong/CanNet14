@@ -78,16 +78,15 @@ class PrimaryCaps(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        print(x.shape, "1")
         p = self.pose(x)
-        print(p.shape, "2")
+        #print(p.shape, "2")
         a = self.a(x)
-        print(a.shape, "3")
+    #    print(a.shape, "3")
         a = self.sigmoid(a)
         out = torch.cat([p, a], dim=1)
-        print(out.shape, "4")
+    #    print(out.shape, "4")
         out = out.permute(0, 2, 3, 1)
-        print(out.shape, "5")
+    #    print(out.shape, "5")
         return out
 
 
@@ -564,7 +563,7 @@ class ConcatPrimaryCaps(nn.Module):
         self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=1, P=4, stride=1)
 
     def forward(self, t, x):
-        print(t.shape, "ccpc1")
+    #    print(t.shape, "ccpc1")
         print(x.shape, "ccpc2")
         tt = torch.ones_like(x[:, :1, :, :]) * t
         print(tt.shape, "ccpc3")
@@ -604,13 +603,13 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         self.nfe = torch.tensor(0)
 
     def forward(self, t, x):
-        print(t.shape, "capsode9")
-        print(x.shape, "capsode10")
+        #print(t.shape, "capsode9")
+        #print(x.shape, "capsode10")
         self.nfe += 1
         #out = self.primary_caps(x)
         out = self.convcaps(x)
 
-        print(out.shape, "capsode95")
+        #print(out.shape, "capsode95")
         return out
 
 
@@ -631,11 +630,11 @@ class CapsODEBlock(nn.Module):
             times = t
 
         times = times.type_as(x)
-        print(x.shape, "capdsode11")
+        #print(x.shape, "capdsode11")
 
         self.outputs = odeint(self.odefunc, x, times, rtol=0.001, atol=0.001)
-        print(self.outputs.shape, "capdsode13")
-        print(self.outputs[1].shape, 'capsode14')
+    #    print(self.outputs.shape, "capdsode13")
+    #    print(self.outputs[1].shape, 'capsode14')
         return self.outputs[1]
 
     @property
