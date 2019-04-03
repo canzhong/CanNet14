@@ -560,7 +560,7 @@ class ConvCaps2(nn.Module):
 class ConcatPrimaryCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatPrimaryCaps, self).__init__()
-        self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=1, P=4, stride=1)
+        self._layers1 = PrimaryCaps(A=dim, B=dim+1, K=1, P=4, stride=1)
 
     def forward(self, t, x):
     #    print(t.shape, "ccpc1")
@@ -684,7 +684,7 @@ class CapsNet(nn.Module):
                                  momentum=0.1, affine=True)
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
-        self.caps1ode = CapsODE(B, 1)
+        self.caps1ode = CapsODE(B)
         self.capsblock = CapsODEBlock(self.caps1ode)
 
         self.class_caps = ConvCaps(B, E, 1, P, stride=1, iters=iters,
