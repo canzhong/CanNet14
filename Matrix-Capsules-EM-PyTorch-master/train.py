@@ -632,7 +632,7 @@ class CapsODEBlock(nn.Module):
 
         print(x.shape, "capdsode11")
 
-        self.outputs = odeint(self.odefunc, x, times, rtol=0.001, atol=0.001)
+        self.outputs = odeint(self.odefunc, x, times.type_as(x), rtol=0.001, atol=0.001)
         print(self.outputs.shape, "capdsode13")
         print(self.outputs[1].shape, 'capsode14')
         return self.outputs[1]
