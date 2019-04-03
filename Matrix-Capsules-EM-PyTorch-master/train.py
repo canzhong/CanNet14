@@ -129,7 +129,7 @@ class ConvCaps(nn.Module):
         # constant
         self.eps = 1e-8
         self._lambda = 1e-03
-        self.ln_2pi = .FloatTensor(1).fill_(math.log(2*math.pi))
+        self.ln_2pi = torch.cuda.FloatTensor(1).fill_(math.log(2*math.pi))
         # params
         # Note that \beta_u and \beta_a are per capsule type,
         # which are stated at https://openreview.net/forum?id=HJWLfGWRb&noteId=rJUY2VdbM
@@ -230,7 +230,7 @@ class ConvCaps(nn.Module):
         assert c == C
         assert (b, B, 1) == a_in.shape
 
-        r = .FloatTensor(b, B, C).fill_(1./C)
+        r = torch.cuda.FloatTensor(b, B, C).fill_(1./C)
         #Again, we know we want this routing to occur at every time step until we get satisfactory parameters from our ODE solver. for iter_ in range(self.iters):
         a_out, mu, sigma_sq = self.m_step(a_in, r, v, eps, b, B, C, psize)
             #We do not want this because we wnat to ensure it will continually run this even if it is the only iteration. if iter_ < self.iters - 1:
@@ -288,8 +288,8 @@ class ConvCaps(nn.Module):
         assert h == w
         v = v.view(b, h, w, B, C, psize)
         coor = 1. * torch.arange(h) / h
-        coor_h = .FloatTensor(1, h, 1, 1, 1, self.psize).fill_(0.)
-        coor_w = .FloatTensor(1, 1, w, 1, 1, self.psize).fill_(0.)
+        coor_h = torch.cuda.FloatTensor(1, h, 1, 1, 1, self.psize).fill_(0.)
+        coor_w = torch.cuda.FloatTensor(1, 1, w, 1, 1, self.psize).fill_(0.)
         coor_h[0, :, 0, 0, 0, 0] = coor
         coor_w[0, 0, :, 0, 0, 1] = coor
         v = v + coor_h + coor_w
