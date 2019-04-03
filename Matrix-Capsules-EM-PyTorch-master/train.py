@@ -707,11 +707,11 @@ class CapsNet(nn.Module):
         return out
 
     def returnnef(self):
-        return capsblock.nfe, caps2block.nfe
+        return self.capsblock.nfe, self.caps2block.nfe
 
     def resetnef(self):
-        capsblock.nfe = 0
-        caps2block.nfe = 0
+        self.capsblock.nfe = 0
+        self.caps2block.nfe = 0
 
 
 class RunningAverageMeter(object):
