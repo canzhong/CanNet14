@@ -560,7 +560,7 @@ class ConvCaps2(nn.Module):
 class ConcatPrimaryCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatPrimaryCaps, self).__init__()
-        self._layers1 = PrimaryCaps(A=dim, B=dim+1, K=1, P=4, stride=1)
+        self._layers1 = PrimaryCaps(A=dim+1, B=dim+1, K=1, P=4, stride=1)
 
     def forward(self, t, x):
     #    print(t.shape, "ccpc1")
@@ -598,7 +598,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         super().__init__()
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
 
-        self.convcaps = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=2, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
+        self.convcaps = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = torch.tensor(0)
 
@@ -679,15 +679,17 @@ class CapsNet(nn.Module):
     def __init__(self, A=32, B=32, C=32, D=32, E=10, K=3, P=4, iters=2):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=A,
-                               kernel_size=5, stride=2, padding=2)
+                               kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(num_features=A, eps=0.001,
                                  momentum=0.1, affine=True)
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
         self.caps1ode = CapsODE(B)
         self.capsblock = CapsODEBlock(self.caps1ode)
+        self.caps2ode = CapsODE(C)
+        self.caps2block = CapsODEBlock(self.caps2ode)
 
-        self.class_caps = ConvCaps(B, E, 1, P, stride=1, iters=iters,
+        self.class_caps = ConvCaps(D, E, 1, P, stride=1, iters=iters,
                                         coor_add=True, w_shared=True)
 
 
@@ -698,15 +700,17 @@ class CapsNet(nn.Module):
         out = self.relu1(out)
         out = self.primary_caps(out)
         out = self.capsblock(out, t)
+        out = self.caps2block(out, t)
 
         out = self.class_caps(out)
         return out
 
     def returnnef(self):
-        return self.capsblock.nfe
+        return self.capsblock.nfe, self.caps2block.nfe
 
     def resetnef(self):
         self.capsblock.nfe = 0
+        self.caps2block.nfe = 0
 
 
 class RunningAverageMeter(object):
