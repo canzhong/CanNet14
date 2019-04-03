@@ -297,6 +297,8 @@ class ConvCaps(nn.Module):
 
     def forward(self, x):
         print(x.shape)
+        x = x[:, :-2, :-2, :]
+        print(x.shape)
         b, h, w, c = x.shape
 
         if not self.w_shared:
@@ -517,7 +519,7 @@ class ConvCaps2(nn.Module):
         v = v.view(b, h*w*B, C, psize)
         return v
 
-    def forward(self, x[:,:-2,:-2,:])
+    def forward(self, x):
 
         b, h, w, c = x.shape
         if not self.w_shared:
