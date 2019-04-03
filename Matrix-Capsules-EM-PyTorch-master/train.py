@@ -297,7 +297,7 @@ class ConvCaps(nn.Module):
 
     def forward(self, x):
         print(x.shape)
-        x = x[:, -2:, -2:, :]
+        x = x[:, :(x-2), :(x-2), :]
         print(x.shape)
         b, h, w, c = x.shape
 
@@ -313,7 +313,7 @@ class ConvCaps(nn.Module):
             a_in = a_in.view(b*oh*ow, self.K*self.K*self.B, 1)
             v = self.transform_view(p_in, self.weights, self.C, self.P)
 
-            # em_routing
+            # em_routi
             p_out, a_out = self.caps_em_routing(v, a_in, self.C, self.eps)
             p_out = p_out.view(b, oh, ow, self.C*self.psize)
             a_out = a_out.view(b, oh, ow, self.C)
