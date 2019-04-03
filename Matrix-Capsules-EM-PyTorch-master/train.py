@@ -868,7 +868,6 @@ if __name__ == '__main__':
     #Sequential Model of Independent Layers for test network
     model = CapsNet(A=A, B=B, C=C, D=D, E=E)
     model.cuda()
-    model = nn.Sequential(model)
     #Create a logger associated with our model
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
