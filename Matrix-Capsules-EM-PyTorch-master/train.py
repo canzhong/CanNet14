@@ -621,7 +621,7 @@ class CapsODEBlock(nn.Module):
 
         super().__init__()
         self.odefunc = odefunc
-        self.t = torch.cuda.FloatTensor([0, 1])
+        self.t = torch.FloatTensor([0, 1])
         self.outputs = None
 
     def forward(self, x, t=None):
