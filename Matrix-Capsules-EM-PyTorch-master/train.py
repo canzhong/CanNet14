@@ -686,10 +686,10 @@ class CapsNet(nn.Module):
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
         self.caps1ode = CapsODE(B)
         self.capsblock = CapsODEBlock(self.caps1ode)
-        self.caps2ode = CapsODE(C/2)
+        self.caps2ode = CapsODE(C//2)
         self.caps2block = CapsODEBlock(self.caps2ode)
 
-        self.class_caps = ConvCaps(D/2, E, 1, P, stride=1, iters=iters,
+        self.class_caps = ConvCaps(D//2, E, 1, P, stride=1, iters=iters,
                                         coor_add=True, w_shared=True)
 
 
