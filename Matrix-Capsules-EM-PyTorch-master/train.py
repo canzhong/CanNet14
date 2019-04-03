@@ -578,7 +578,7 @@ class ConcatPrimaryCaps(nn.Module):
 class ConcatConvCaps(nn.Module):
     def __init__(self, dim):
         super(ConcatConvCaps, self).__init__()
-        self._layers2 = ConvCaps(B=dim, C=dim+1, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
+        self._layers2 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)
 
     def forward(self, t, x):
         print(t.shape, "concatconv7")
@@ -596,20 +596,20 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
     def __init__(self, dim):
 
-        super(CapsODE, self).__init__()
+        super().__init__()
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
 
-        self.convcaps = ConcatConvCaps(dim)
+        self.convcaps = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
-        self.nfe = 0
+        self.nfe = torch.tensor(0)
 
     def forward(self, t, x):
         print(t.shape, "capsode9")
         print(x.shape, "capsode10")
         self.nfe += 1
         #out = self.primary_caps(x)
-        out = self.convcaps(t, x)
-        out = out[:,:,:,:-17]
+        out = self.convcaps(x)
+
         print(out.shape, "capsode95")
         return out
 
@@ -619,25 +619,31 @@ class CapsODEBlock(nn.Module):
 
     def __init__(self, odefunc):
 
-        super(CapsODEBlock, self).__init__()
+        super().__init__()
         self.odefunc = odefunc
-        self.integration_time = torch.tensor([0, 1]).float()
+        self.t = torch.tensor([0, 1]).float()
+        self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x, t=None):
+        if t is None:
+            times = self.t
+        else:
+            times = t
+
         print(x.shape, "capdsode11")
-        self.integration_time = self.integration_time.type_as(x)
-        out = odeint(self.odefunc, x, self.integration_time, rtol=0.001, atol=0.001)
-        print(out.shape, "capdsode13")
-        print(out[1].shape, 'capsode14')
-        return out[1]
+
+        self.outputs = odeint(self.odefunc, x, times, rtol=0.001, atol=0.001)
+        print(self.outputs.shape, "capdsode13")
+        print(self.outputs[1].shape, 'capsode14')
+        return self.outputs[1]
 
     @property
     def nfe(self):
-        return self.odefunc.nfe
+        return self.odefunc.nfe.item()
 
     @nfe.setter
     def nfe(self, value):
-        self.odefunc.nfe = value
+        self.odefunc.nfe.fill_(value)
 
 
 def inf_generator(iterable):
@@ -671,29 +677,33 @@ def count_parameters(model):
 class CapsNet(nn.Module):
 
     def __init__(self, A=32, B=32, C=32, D=32, E=10, K=3, P=4, iters=2):
-        super(CapsNet, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=A,
                                kernel_size=5, stride=2, padding=2)
         self.bn1 = nn.BatchNorm2d(num_features=A, eps=0.001,
                                  momentum=0.1, affine=True)
         self.relu1 = nn.ReLU(inplace=False)
         self.primary_caps = PrimaryCaps(A, B, 1, P, stride=1)
-        self.conv_caps1 = ConvCaps(B, C, K, P, stride=2, iters=iters)
-        self.conv_caps2 = ConvCaps(C, D, K, P, stride=1, iters=iters)
+        self.caps1ode = CapsODE(B)
+        self.capsblock = CapsODEBlock(self.caps1ode)
+        self.caps2ode = CapsODE(C)
+        self.caps2block = CapsODEBlock(self.caps2ode)
+
         self.class_caps = ConvCaps(D, E, 1, P, stride=1, iters=iters,
                                         coor_add=True, w_shared=True)
-        self.nfe = 0
 
-    def forward(self, t, x):
-        self.nfe += 1
+
+    def forward(self, x, t=None):
+
         out = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu1(x)
-        x = self.primary_caps(x)
-        x = self.conv_caps1(x)
+        out = self.bn1(out)
+        out = self.relu1(out)
+        out = self.primary_caps(out)
+        out = self.caps1ode(out, t)
+        out = self.caps2ode(out, t)
 
-        x = self.class_caps(x)
-        return x
+        out = self.class_caps(out)
+        return out
 
 
 
@@ -848,18 +858,9 @@ if __name__ == '__main__':
     data_gen = inf_generator(train_loader)
     batches_per_epoch = len(train_loader)
     #Independent Layers of the test networks
-    featuremaps = [
-        nn.Conv2d(in_channels=1, out_channels=12, kernel_size=5, stride=2, padding=2),
-        nn.BatchNorm2d(num_features=12, eps=0.001, momentum=0.1, affine=True),
-        nn.ReLU(inplace=False),
-        PrimaryCaps(12, 12, 1, 4, 1),
-    ]
-    featureencapsulation = [CapsODEBlock(CapsODE(12))]
-    classsegregation = [ConvCaps2(12, 10, 1, 4, 1, 3, coor_add=True, w_shared=True)]
-
+    A, B, C, D, E = 12, 12, 12, 12, 10
     #Sequential Model of Independent Layers for test network
-    model = nn.Sequential(*featuremaps, *featureencapsulation, *classsegregation).to(device)
-
+    model = CapsNet(A=A, B=B, C=C, D=D, E=E)
     #Create a logger associated with our model
     logger.info(model)
     logger.info('Number of parameters: {}'.format(count_parameters(model)))
