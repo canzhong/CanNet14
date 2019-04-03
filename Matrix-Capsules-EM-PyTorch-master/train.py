@@ -603,7 +603,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = torch.tensor(0)
 
-    def forward(self, t, x):
+    def forward(self, x, t):
         print(t.shape, "capsode9")
         print(x.shape, "capsode10")
         self.nfe += 1
