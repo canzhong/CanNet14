@@ -621,7 +621,7 @@ class CapsODEBlock(nn.Module):
 
         super().__init__()
         self.odefunc = odefunc
-        self.t = torch.FloatTensor([0, 1])
+        self.t = torch.tensor([0, 1]).float()
         self.outputs = None
 
     def forward(self, x, t=None):
@@ -630,9 +630,10 @@ class CapsODEBlock(nn.Module):
         else:
             times = t
 
+        times = times.type_as(x)
         print(x.shape, "capdsode11")
 
-        self.outputs = odeint(self.odefunc, x, times.type_as(x), rtol=0.001, atol=0.001)
+        self.outputs = odeint(self.odefunc, x, times, rtol=0.001, atol=0.001)
         print(self.outputs.shape, "capdsode13")
         print(self.outputs[1].shape, 'capsode14')
         return self.outputs[1]
