@@ -297,7 +297,8 @@ class ConvCaps(nn.Module):
 
     def forward(self, x):
         print(x.shape)
-        x = x[:, :(x-2), :(x-2), :]
+        y = x-2
+        x = x[:, :y, :y, :]
         print(x.shape)
         b, h, w, c = x.shape
 
