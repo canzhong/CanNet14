@@ -598,7 +598,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         super().__init__()
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
 
-        self.convcaps = ConvCaps(B=dim-1, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
+        self.convcaps = ConvCaps(B=dim-, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = torch.tensor(0)
 
@@ -679,7 +679,7 @@ class CapsNet(nn.Module):
     def __init__(self, A=32, B=32, C=32, D=32, E=10, K=3, P=4, iters=2):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=A,
-                               kernel_size=3, stride=1, padding=1)
+                               kernel_size=5, stride=2, padding=2)
         self.bn1 = nn.BatchNorm2d(num_features=A, eps=0.001,
                                  momentum=0.1, affine=True)
         self.relu1 = nn.ReLU(inplace=False)
