@@ -599,7 +599,7 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
 
         super().__init__()
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
-        self.ConvCaps1 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
+        self.ConvCaps1 = ConvCaps(B=dim, C=dim, K=1, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.class_caps = ConvCaps(B=dim, C=dim, K=1, P=4, stride=1, iters=1, coor_add=True, w_shared=True)
 
