@@ -72,9 +72,9 @@ class PrimaryCaps(nn.Module):
     def __init__(self, A=32, B=32, K=1, P=4, stride=1):
         super(PrimaryCaps, self).__init__()
         self.pose = nn.Conv2d(in_channels=A, out_channels=B*P*P,
-                            kernel_size=K, stride=stride, bias=True, padding=1)
+                            kernel_size=K, stride=stride, bias=True)
         self.a = nn.Conv2d(in_channels=A, out_channels=B,
-                            kernel_size=K, stride=stride, bias=True, padding=1)
+                            kernel_size=K, stride=stride, bias=True)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -101,7 +101,7 @@ class ConvCaps(nn.Module):
         K: kernel size of convolution
         P: size of pose matrix is P*P
         stride: stride of convolution
-        iters: number of EM iterations
+        iters: number of EM iterationsd
         coor_add: use scaled coordinate addition or not
         w_shared: share transformation matrix across w*h.
 
@@ -601,6 +601,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
         self.ConvCaps1 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
+        self.class_caps = ConvCaps(B=dim, C=10, 1, P, stride=1, iters=1, coor_add=True, w_shared=True)
+
         self.nfe = torch.tensor(0)
 
     def forward(self, t, x):
@@ -608,8 +610,8 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         #print(x.shape, "capsode10")
         self.nfe += 1
         #out = self.primary_caps(x)
-        out = self.ConvCaps1(x)
-
+        y = self.ConvCaps1(x)
+        out = self.class_caps(y)
         #print(out.shape, "capsode95")
         return out
 
@@ -700,7 +702,7 @@ class CapsNet(nn.Module):
         out = self.primary_caps(out)
         out = self.capsblock(out, t)
 
-        out = self.class_caps(out)
+
         return out
 
     def returnnef(self):
