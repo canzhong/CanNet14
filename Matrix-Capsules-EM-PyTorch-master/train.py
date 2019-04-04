@@ -864,7 +864,7 @@ if __name__ == '__main__':
     data_gen = inf_generator(train_loader)
     batches_per_epoch = len(train_loader)
     #Independent Layers of the test networks
-    A, B, C, D, E = 12, 12, 12
+    A, B, C, D, E = 12, 12, 12, 0, 0
     #Sequential Model of Independent Layers for test network
     model = CapsNet(A=A, B=B, C=C, D=D, E=E)
     model.cuda()
