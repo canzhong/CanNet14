@@ -46,7 +46,7 @@ parser.add_argument('--dataset', type=str, default='mnist', metavar='D',
                     help='dataset for training(mnist, smallNORB)')
 parser.add_argument('--data_aug', type=eval, default=True, choices=[True, False])
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--tol', type=float, default=1e-3)
+parser.add_argument('--tol', type=float, default=1e-5)
 args = parser.parse_args()
 class PrimaryCaps(nn.Module):
     r"""Creates a primary convolutional capsule layer
@@ -72,9 +72,9 @@ class PrimaryCaps(nn.Module):
     def __init__(self, A=32, B=32, K=1, P=4, stride=1):
         super(PrimaryCaps, self).__init__()
         self.pose = nn.Conv2d(in_channels=A, out_channels=B*P*P,
-                            kernel_size=K, stride=stride, bias=True)
+                            kernel_size=K, stride=stride, bias=True, padding=1)
         self.a = nn.Conv2d(in_channels=A, out_channels=B,
-                            kernel_size=K, stride=stride, bias=True)
+                            kernel_size=K, stride=stride, bias=True, padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -297,8 +297,7 @@ class ConvCaps(nn.Module):
 
     def forward(self, x):
         print(x.shape)
-        y = x-2
-        x = x[:, :y, :y, :]
+
         print(x.shape)
         b, h, w, c = x.shape
 
@@ -601,7 +600,6 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         super().__init__()
         #self.primary_caps = PrimaryCaps(A=dim, B=dim, K=1, P=4, stride=1)
         self.ConvCaps1 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
-        self.ConvCaps2 = ConvCaps(B=dim, C=dim, K=3, stride=1, iters=1, coor_add=False, w_shared=False)#ConcatConvCaps(dim)
         #self.classcaps = ConcatConvCaps(B=dim, C=dim )
         self.nfe = torch.tensor(0)
 
@@ -611,7 +609,6 @@ class CapsODE(nn.Module): ##ODEFunc(nn.Module)
         self.nfe += 1
         #out = self.primary_caps(x)
         out = self.ConvCaps1(x)
-        out = self.ConvCaps2(out)
 
         #print(out.shape, "capsode95")
         return out
@@ -636,7 +633,7 @@ class CapsODEBlock(nn.Module):
         times = times.type_as(x)
         #print(x.shape, "capdsode11")
 
-        self.outputs = odeint(self.odefunc, x, times, rtol=0.001, atol=0.001)
+        self.outputs = odeint(self.odefunc, x, times, rtol=0.00001, atol=0.00001)
     #    print(self.outputs.shape, "capdsode13")
     #    print(self.outputs[1].shape, 'capsode14')
         return self.outputs[1]
